@@ -1,4 +1,4 @@
-#! /usr/local/bin node
+#!/usr/bin/env node
 
 import meow from 'meow';
 import chalk from 'chalk';
