@@ -7,14 +7,57 @@ import chalk from 'chalk';
 import Observable from 'any-observable';
 import streamToObservable from 'stream-to-observable';
 import fuzzy from 'fuzzy';
+import split from 'split';
+import _ from 'lodash';
+import Conf from 'conf';
+import Ora from 'ora';
+import ow from 'ow';
+
+const config = new Conf();
+const spinner = new Ora({
+	spinner: 'growVertical'
+});
+
+export async function checkCaskList(force = false) {
+	ow(force, ow.boolean);
+
+	let diff = config.get('update-delay');
+	const last_check = config.get('last-update') || diff;
+
+	if ((Date.now() - last_check) >= diff || force === true) {
+		let s = Date.now();
+		spinner.color = 'green';
+		spinner.start(chalk `{green Updating apps list...}`);
+
+		const apps = await getAppsList();
+
+		config.set({
+			apps,
+			'last-update': Date.now()
+		});
+
+		let e = Date.now();
+		spinner.succeed(chalk `{green List updated!} {bold {dim Took ${(e-s)/1000}s}}`)
+		return true;
+	}
+
+	return false;
+}
 
 export function exec(cmd, args) {
+	ow(cmd, ow.string);
+	ow(args, ow.array);
+
 	// Use `Observable` support if merged https://github.com/sindresorhus/execa/pull/26
 	const cp = execa(cmd, args);
 
 	return Observable.merge(
-		streamToObservable(cp.stdout.pipe(split()), {await: cp}),
-		streamToObservable(cp.stderr.pipe(split()), {await: cp})
+		streamToObservable(cp.stdout.pipe(split()), {
+			await: cp
+		}),
+		streamToObservable(cp.stderr.pipe(split()), {
+			await: cp
+		})
 	).filter(Boolean);
 };
 
@@ -61,7 +104,7 @@ export async function getInstalledApps() {
 		execa('brew', ['cask', 'list']).then(({
 				stdout
 			}) => {
-				resolve(stdout.split('\n'))
+				resolve(stdout.split('\n').filter(item => item.trim().length > 0))
 			})
 			.catch(reject)
 	});
@@ -70,30 +113,34 @@ export async function getInstalledApps() {
 export async function checkCask() {
 	return new Promise((resolve, reject) => {
 		execa('brew', ['cask', '--version'])
-		.then(({ stdout: out }) => 	pb(chalk `{yellow Homebrew}: ${out.match(/^homebrew (\d+\.\d+\.\d+)/i)[1]}`))
-		.catch((error) => {
-			pb(
-				chalk `{yellow Cask} not found.`,
-				chalk `{dim Install via:}`,
-				chalk `{dim {underline {green $} ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+			.then(({
+				stdout: out
+			}) => pb(chalk `{yellow Homebrew}: ${out.match(/^homebrew (\d+\.\d+\.\d+)/i)[1]}`))
+			.catch((error) => {
+				pb(
+					chalk `{yellow Cask} not found.`,
+					chalk `{dim Install via:}`,
+					chalk `{dim {underline {green $} ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
 					{green $} brew tap phinze/homebrew-cask
 					{green $} brew install brew-cask}}`
-			)
-		})
+				)
+			})
 	});
 }
 
 export async function checkHomeBrew() {
 	return new Promise((resolve, reject) => {
 		execa('brew', ['--version'])
-		.then(({ stdout: out }) => 	pb(chalk `{yellow Homebrew}: ${out.match(/^homebrew (\d+\.\d+\.\d+)/i)[1]}`))
-		.catch((error) => {
-			pb(
-				chalk `{yellow Homebrew} not found.`,
-				chalk `{dim Install via:}`,
-				chalk `{dim {underline /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)}}"
+			.then(({
+				stdout: out
+			}) => pb(chalk `{yellow Homebrew}: ${out.match(/^homebrew (\d+\.\d+\.\d+)/i)[1]}`))
+			.catch((error) => {
+				pb(
+					chalk `{yellow Homebrew} not found.`,
+					chalk `{dim Install via:}`,
+					chalk `{dim {underline /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)}}"
 			}`);
-		})
+			})
 	});
 }
 
