@@ -15,7 +15,6 @@ const cli = meow(chalk `
 		--force-update		Force remote list update
 		--set-delay <delay>	Set remote list update delay
 		--get-settings		Get cli settings
-		--info			Get cask app infos
 	
 	Examples:
 		$ csk install 1password
@@ -35,8 +34,7 @@ const cli = meow(chalk `
 		},
 		setDelay: 'number',
 		getSettings: 'boolean',
-		forceUpdate: 'boolean',
-		info: 'boolean',
+		forceUpdate: 'boolean'
 	}
 });
 

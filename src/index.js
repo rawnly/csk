@@ -190,24 +190,6 @@ export default async (cmd, query, flags, cli) => {
 		default:
 			if (flags.forceUpdate) {
 				await checkCaskList(true);
-			} else if (flags.info) {
-				const {
-					cask: csk
-				} = await inquirer.prompt([{
-					name: 'cask',
-					message: 'Select an app to install:',
-					type: 'autocomplete',
-					source(answers, input) {
-						input = input || flags.info || '';
-						return new Promise(function (resolve) {
-							resolve(fuzzy.filter(input, casks, {
-								extract: e => e.appName
-							}).map(e => e.original.appName))
-						});
-					}
-				}])
-
-				pb(config.get('apps').filter(app => app.appName === csk).pop())
 			} else if (flags.setDelay) {
 				if (isNaN(Number(flags.setDelay))) {
 					config.set('update-delay', eval(flags.setDelay))
