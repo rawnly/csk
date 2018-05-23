@@ -23,14 +23,14 @@ const cli = meow(chalk `
 			type: 'boolean',
 			alias: 'h'
 		},
-		'set-delay': {
+		setDelay: {
 			type: 'number'
 		},
 		version: {
 			type: 'boolean',
 			alias: 'v'
 		},
-		update: {
+		forceUpdate: {
 			type: 'boolean',
 			alias: 'u',
 			default: false

@@ -1,10 +1,11 @@
+// TODO: Cleanup the code
+
 import inquirer from 'inquirer';
 import autocompletePrompt from 'inquirer-autocomplete-prompt';
 
 inquirer.registerPrompt('autocomplete', autocompletePrompt);
 
 import chalk from 'chalk';
-import ow from 'ow';
 import pb from '@splash-cli/print-block';
 import execa from 'execa';
 import fuzzy from 'fuzzy';
@@ -71,6 +72,7 @@ export default async (cmd, query, flags, cli) => {
 
 	await checkCaskList();
 
+	// TODO: Improve this switch
 	switch (cmd) {
 		case "install":
 			spinner.start('Loading cask apps...')
@@ -168,7 +170,7 @@ export default async (cmd, query, flags, cli) => {
 			await tasks.run()
 			break;
 		default:
-			if (flags.update) {
+			if (flags.forceUpdate) {
 				await checkCaskList(true);
 			} else if (flags.info) {
 				const {
