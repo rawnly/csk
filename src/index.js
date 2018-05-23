@@ -29,7 +29,7 @@ const spinner = new Ora();
 const config = new Conf({
 	defaults: {
 		apps: [],
-		'update-delay': 1000 * 60 * 60 * 24
+		delay: 1000 * 60 * 60 * 24
 	}
 });
 
@@ -42,7 +42,13 @@ export default async (cmd, query, flags, cli) => {
 			exec('brew', ['--version']).catch(() => {
 				ctx.hasBrew = false
 
-				pb('Error: Homebrew not installed!')
+				pb(
+					chalk `{yellow Cask} not found.`,
+					chalk `{dim Install via:}`,
+					chalk `{dim {underline {green $} ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
+					{green $} brew tap phinze/homebrew-cask
+					{green $} brew install brew-cask}}`
+				)
 
 				process.exit();
 			})
@@ -56,7 +62,11 @@ export default async (cmd, query, flags, cli) => {
 			exec('brew', ['cask', '--version']).catch(() => {
 				ctx.hasCask = false
 
-				pb('Error: Cask not installed!')
+				pb(
+					chalk `{yellow Homebrew} not found.`,
+					chalk `{dim Install via:}`,
+					chalk `{dim {underline /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)}}"}`
+				);
 
 				process.exit();
 			})
@@ -65,7 +75,7 @@ export default async (cmd, query, flags, cli) => {
 		}
 	}])
 
-	let casks = config.get('apps');
+	let casks = config.get('apps')
 
 	console.clear();
 	console.log();
@@ -76,7 +86,15 @@ export default async (cmd, query, flags, cli) => {
 	switch (cmd) {
 		case "install":
 			spinner.start('Loading cask apps...')
-			casks = config.get('apps');
+			casks = config.get('apps').map(cask => {
+				cask.title = cask.appName
+
+				if (isInstalled(cask.appName)) {
+					cask.title = chalk `{magenta ${cask.title}} {dim (installed)}`
+				}
+
+				return cask;
+			});
 			spinner.succeed();
 
 			if (!casks.length) {
@@ -96,7 +114,7 @@ export default async (cmd, query, flags, cli) => {
 					return new Promise(function (resolve) {
 						resolve(fuzzy.filter(input, casks, {
 							extract: e => e.appName
-						}).map(e => e.original.appName))
+						}).map(e => e.original.title))
 					});
 				}
 			}])
@@ -203,7 +221,26 @@ export default async (cmd, query, flags, cli) => {
 
 				settings.apps = settings.apps.length;
 
-				pb(settings)
+				pb('Settings:')
+				Object.keys(settings).map(key => {
+					let setting = settings[key];
+
+					switch (key) {
+						case 'apps':
+							console.log(chalk `  {yellow Apps Index}: ${setting}`)
+							break;
+						case 'last-update':
+							let d = new Date(setting);
+
+							console.log(chalk `  {yellow ${key.split('-').map(item => item.charAt(0).toUpperCase() + item.substr(1,item.length-1)).join(' ')}}: ${d.toString()}`)
+							break;
+						default:
+							console.log(chalk `  {yellow ${key.split('-').map(item => item.charAt(0).toUpperCase() + item.substr(1,item.length-1)).join(' ')}}: ${setting}`)
+							break;
+					}
+				})
+				console.log(chalk `  {dim -----------}`);
+				console.log(chalk `  {yellow Config Path}: {underline ${config.path}}`);
 			} else {
 				cli.showHelp()
 			}

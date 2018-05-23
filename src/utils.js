@@ -21,7 +21,7 @@ const spinner = new Ora({
 export async function checkCaskList(force = false) {
 	ow(force, ow.boolean);
 
-	let diff = config.get('update-delay');
+	let diff = config.get('delay');
 	const last_check = config.get('last-update') || diff;
 
 	if ((Date.now() - last_check) >= diff || force === true) {
@@ -107,50 +107,5 @@ export async function getInstalledApps() {
 				resolve(stdout.split('\n').filter(item => item.trim().length > 0))
 			})
 			.catch(reject)
-	});
-}
-
-export async function checkCask() {
-	return new Promise((resolve, reject) => {
-		execa('brew', ['cask', '--version'])
-			.then(({
-				stdout: out
-			}) => pb(chalk `{yellow Homebrew}: ${out.match(/^homebrew (\d+\.\d+\.\d+)/i)[1]}`))
-			.catch((error) => {
-				pb(
-					chalk `{yellow Cask} not found.`,
-					chalk `{dim Install via:}`,
-					chalk `{dim {underline {green $} ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
-					{green $} brew tap phinze/homebrew-cask
-					{green $} brew install brew-cask}}`
-				)
-			})
-	});
-}
-
-export async function checkHomeBrew() {
-	return new Promise((resolve, reject) => {
-		execa('brew', ['--version'])
-			.then(({
-				stdout: out
-			}) => pb(chalk `{yellow Homebrew}: ${out.match(/^homebrew (\d+\.\d+\.\d+)/i)[1]}`))
-			.catch((error) => {
-				pb(
-					chalk `{yellow Homebrew} not found.`,
-					chalk `{dim Install via:}`,
-					chalk `{dim {underline /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)}}"
-			}`);
-			})
-	});
-}
-
-export function filterCasks(source, input) {
-	input = input || '';
-	return new Promise(function (resolve) {
-		setTimeout(function () {
-			resolve(fuzzy.filter(input, source, {
-				extract: e => e.appName
-			}).map(e => e.original.appName))
-		}, _.random(30, 500));
 	});
 }
