@@ -5,6 +5,10 @@
   "main": "build/bin/index.js",
   "author": "Federico Vitale <fedevitale99@gmail.com> (https://federicovitale.me)",
   "license": "MIT",
+  "scripts": {
+    "build": "babel src -d build",
+    "start": "./build/bin/index.js"
+  },
   "bin": {
     "csk": "build/bin/index.js"
   },

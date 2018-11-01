@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 // TODO: Cleanup the code
 
 import inquirer from 'inquirer';
@@ -6,7 +8,7 @@ import autocompletePrompt from 'inquirer-autocomplete-prompt';
 inquirer.registerPrompt('autocomplete', autocompletePrompt);
 
 import chalk from 'chalk';
-import pb from '@splash-cli/print-block';
+import printBlock from '@splash-cli/print-block';
 import execa from 'execa';
 import fuzzy from 'fuzzy';
 import _ from 'lodash';
@@ -18,8 +20,6 @@ import Conf from 'conf';
 
 
 import {
-	checkCask,
-	checkHomeBrew,
 	checkCaskList,
 	getInstalledApps,
 	exec
@@ -42,7 +42,7 @@ export default async (cmd, query, flags, cli) => {
 			exec('brew', ['--version']).catch(() => {
 				ctx.hasBrew = false
 
-				pb(
+				printBlock(
 					chalk `{yellow Cask} not found.`,
 					chalk `{dim Install via:}`,
 					chalk `{dim {underline {green $} ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
@@ -59,10 +59,10 @@ export default async (cmd, query, flags, cli) => {
 		title: 'Checking cask installation...',
 		enabled: ctx => ctx.hasBrew,
 		task: ctx => {
-			exec('brew', ['cask', '--version']).catch(() => {
+			exec('brew', ['cask']).catch(() => {
 				ctx.hasCask = false
 
-				pb(
+				printBlock(
 					chalk `{yellow Homebrew} not found.`,
 					chalk `{dim Install via:}`,
 					chalk `{dim {underline /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)}}"}`
@@ -98,10 +98,10 @@ export default async (cmd, query, flags, cli) => {
 			spinner.succeed();
 
 			if (!casks.length) {
-				return pb(chalk.red('ERROR') + ': No cask apps found!')
+				return printBlock(chalk.red('ERROR') + ': No cask apps found!')
 			}
 
-			pb('');
+			printBlock('');
 
 			const {
 				cask
@@ -120,7 +120,7 @@ export default async (cmd, query, flags, cli) => {
 			}])
 
 			if (isInstalled(cask) && !flags.force) {
-				pb(chalk `{red {bold ERROR:}} "${cask}" is already installed!`, chalk `{dim Re run install with {green --force} to re-install!}`);
+				printBlock(chalk `{red {bold ERROR:}} "${cask}" is already installed!`, chalk `{dim Re run install with {green --force} to re-install!}`);
 				return execa('open', [`/Applications/${cask}.app`, '--reveal'])
 			} else if (isInstalled(cask) && flags.force) {
 				tasks.add([{
@@ -148,10 +148,10 @@ export default async (cmd, query, flags, cli) => {
 			spinner.succeed();
 
 			if (!casks.length) {
-				return pb(chalk.red('ERROR') + ': No local cask apps installed!')
+				return printBlock(chalk.red('ERROR') + ': No local cask apps installed!')
 			}
 
-			pb('');
+			printBlock('');
 
 			const {
 				cask: caskToRemove
@@ -193,17 +193,17 @@ export default async (cmd, query, flags, cli) => {
 			} else if (flags.setDelay) {
 				if (isNaN(Number(flags.setDelay))) {
 					config.set('update-delay', eval(flags.setDelay))
-					return pb(chalk `Delay updated to: ${ms(eval(flags.setDelay))}`)
+					return printBlock(chalk `Delay updated to: ${ms(eval(flags.setDelay))}`)
 				}
 
 				config.set('update-delay', flags.setDelay)
-				return pb(chalk `Delay updated to: ${ms(flags.setDelay)}`)
+				return printBlock(chalk `Delay updated to: ${ms(flags.setDelay)}`)
 			} else if (flags.getSettings) {
 				const settings = config.get()
 
 				settings.apps = settings.apps.length;
 
-				pb('Settings:')
+				printBlock('Settings:')
 				Object.keys(settings).map(key => {
 					let setting = settings[key];
 
