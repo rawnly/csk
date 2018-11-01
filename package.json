@@ -1,7 +1,7 @@
 {
   "name": "csk",
   "description": "A better `brew cask`",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "build/bin/index.js",
   "author": "Federico Vitale <fedevitale99@gmail.com> (https://federicovitale.me)",
   "license": "MIT",
